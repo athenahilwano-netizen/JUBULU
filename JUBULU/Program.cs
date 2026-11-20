@@ -4,46 +4,38 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-
 namespace JubuluFoodKiosk
 {
     internal class Program
     {
         private const string RestaurantName = "JUBULU FOOD KIOSK";
         private const string PaidStatus = "PAID";
-
         private static readonly string[] MenuNames =
         {
-            "Chicken Meal",
-            "Burger",
-            "Fries",
-            "Soft Drink",
-            "Sundae"
-        };
-
+ "Chicken Meal",
+ "Burger",
+ "Fries",
+ "Soft Drink",
+ "Sundae"
+ };
         private static readonly decimal[] MenuPrices =
         {
-            120.00m,
-            60.00m,
-            45.00m,
-            30.00m,
-            35.00m
-        };
-
+ 120.00m,
+ 60.00m,
+ 45.00m,
+ 30.00m,
+ 35.00m
+ };
         private static readonly int[] CartQuantities =
-            new int[MenuNames.Length];
-
+        new int[MenuNames.Length];
         private static readonly string RecordsFolder =
-            Path.Combine(AppContext.BaseDirectory, "records");
-
+        Path.Combine(AppContext.BaseDirectory, "records");
         private static readonly string OrdersFile =
-            Path.Combine(RecordsFolder, "orders.txt");
-
+        Path.Combine(RecordsFolder, "orders.txt");
         private static void Main()
         {
             Console.OutputEncoding = Encoding.UTF8;
             Console.Title = RestaurantName;
-
             while (true)
             {
                 Console.Clear();
@@ -52,22 +44,18 @@ namespace JubuluFoodKiosk
                 Console.WriteLine("2. Cashier View");
                 Console.WriteLine("3. Exit");
                 Console.WriteLine();
-
                 int choice = ReadInteger(
-                    "Select an option: ",
-                    1,
-                    3);
-
+                "Select an option: ",
+                1,
+                3);
                 switch (choice)
                 {
                     case 1:
                         CustomerView();
                         break;
-
                     case 2:
                         CashierView();
                         break;
-
                     case 3:
                         Console.WriteLine();
                         Console.WriteLine("Thank you for using JUBULU!");
@@ -75,179 +63,134 @@ namespace JubuluFoodKiosk
                 }
             }
         }
-
         private static void DisplayHeader()
         {
             Console.WriteLine("==============================================");
-            Console.WriteLine($"             {RestaurantName}");
+            Console.WriteLine($" {RestaurantName}");
             Console.WriteLine("==============================================");
         }
-
         private static void CustomerView()
         {
             ClearCart();
-
             while (true)
             {
                 Console.Clear();
                 DisplayHeader();
                 DisplayFoodMenu();
-
                 Console.WriteLine();
                 Console.WriteLine("A. Add an item");
                 Console.WriteLine("R. Review order");
                 Console.WriteLine("C. Cancel order");
                 Console.WriteLine("B. Back to main menu");
                 Console.WriteLine();
-
                 Console.Write("Select an option: ");
                 string choice = (Console.ReadLine() ?? "")
-                    .Trim()
-                    .ToUpperInvariant();
-
+                .Trim()
+                .ToUpperInvariant();
                 switch (choice)
                 {
                     case "A":
                         AddItemToCart();
                         break;
-
                     case "R":
                         if (IsCartEmpty())
                         {
                             ShowMessage(
-                                "The cart is empty. Add an item before checkout.");
+                            "The cart is empty. Add an item before checkout.");
                         }
                         else if (ReviewOrder())
                         {
                             return;
                         }
-
                         break;
-
                     case "C":
                     case "B":
                         if (!IsCartEmpty())
                         {
                             ClearCart();
                             ShowMessage(
-                                "Order canceled. No sale was saved.");
+                            "Order canceled. No sale was saved.");
                         }
-
                         return;
-
                     default:
                         ShowMessage("Invalid option. Please try again.");
                         break;
                 }
             }
         }
-
         private static void DisplayFoodMenu()
         {
             Console.WriteLine("FOOD MENU");
             Console.WriteLine("----------------------------------------------");
             Console.WriteLine("{0,-5} {1,-24} {2,12}",
-                "No.", "Item", "Price");
+            "No.", "Item", "Price");
             Console.WriteLine("----------------------------------------------");
-
             for (int index = 0; index < MenuNames.Length; index++)
             {
                 Console.WriteLine(
-                    "{0,-5} {1,-24} PHP {2,7:N2}",
-                    index + 1,
-                    MenuNames[index],
-                    MenuPrices[index]);
+                "{0,-5} {1,-24} PHP {2,7:N2}",
+                index + 1,
+                MenuNames[index],
+                MenuPrices[index]);
             }
-
             Console.WriteLine("----------------------------------------------");
         }
-        private static void CustomerView()
-        {
-            ClearCart();
-
-            while (true)
-            {
-                Console.Clear();
-                DisplayHeader();
-                DisplayFoodMenu();
-
-                Console.WriteLine("A. Add an item");
-                Console.WriteLine("R. Review order");
-                Console.WriteLine("C. Cancel order");
-                Console.WriteLine("B. Back to main menu");
-
-                string choice = (Console.ReadLine() ?? "")
-                    .Trim().ToUpperInvariant();
-
-                switch (choice)
-                {
-                    case "A":
-                        AddItemToCart();
-                        break;
-
-                    case "R":
-                        if (IsCartEmpty())
-                        {
-                            ShowMessage("The cart is empty.");
-                        }
-                        else if (ReviewOrder())
-                        {
-                            return;
-                        }
-                        break;
-
-                    case "C":
-                    case "B":
-                        ClearCart();
-                        ShowMessage("Order canceled. No sale was saved.");
-                        return;
-
-                    default:
-                        ShowMessage("Invalid option. Please try again.");
-                        break;
-                }
-            }
-        }
-        
-
         private static void AddItemToCart()
         {
+            Console.WriteLine();
             int itemNumber = ReadInteger(
-                $"Enter item number (1-{MenuNames.Length}): ",
-                1, MenuNames.Length);
-
+            $"Enter item number (1-{MenuNames.Length}): ",
+            1,
+            MenuNames.Length);
             int itemIndex = itemNumber - 1;
             int remainingQuantity = 99 - CartQuantities[itemIndex];
-
+            if (remainingQuantity == 0)
+            {
+                ShowMessage(
+                "This item already has the maximum quantity of 99.");
+                return;
+            }
             int quantity = ReadInteger(
-                $"Enter quantity (1-{remainingQuantity}): ",
-                1, remainingQuantity);
-
+            $"Enter quantity (1-{remainingQuantity}): ",
+            1,
+            remainingQuantity);
             CartQuantities[itemIndex] += quantity;
-
             ShowMessage(
-                $"{quantity} x {MenuNames[itemIndex]} added to the cart.");
+            $"{quantity} x {MenuNames[itemIndex]} added to the cart.");
         }
-
         private static int ReadInteger(
-            string prompt, int minimum, int maximum)
+        string prompt,
+        int minimum,
+        int maximum)
         {
             while (true)
             {
                 Console.Write(prompt);
                 string input = (Console.ReadLine() ?? "").Trim();
-
-                if (int.TryParse(input, out int value) &&
-                    value >= minimum && value <= maximum)
+                if (string.IsNullOrWhiteSpace(input))
                 {
-                    return value;
+                    Console.WriteLine("Input cannot be blank.");
+                    continue;
                 }
-
-                Console.WriteLine(
-                    $"Enter a valid whole number from {minimum} to {maximum}.");
+                if (!int.TryParse(
+                input,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out int value))
+                {
+                    Console.WriteLine(
+                    "Enter a whole number without letters or decimals.");
+                    continue;
+                }
+                if (value < minimum || value > maximum)
+                {
+                    Console.WriteLine(
+                    $"Enter a value from {minimum} to {maximum}.");
+                    continue;
+                }
+                return value;
             }
         }
-
         private static bool ReviewOrder()
         {
             while (true)
@@ -255,13 +198,15 @@ namespace JubuluFoodKiosk
                 Console.Clear();
                 DisplayHeader();
                 DisplayCart();
-
+                Console.WriteLine();
                 Console.WriteLine("1. Add more items");
                 Console.WriteLine("2. Confirm and pay");
                 Console.WriteLine("3. Cancel order");
-
-                int choice = ReadInteger("Select an option: ", 1, 3);
-
+                Console.WriteLine();
+                int choice = ReadInteger(
+                "Select an option: ",
+                1,
+                3);
                 switch (choice)
                 {
                     case 1:
@@ -270,209 +215,329 @@ namespace JubuluFoodKiosk
                         return ProcessPayment();
                     case 3:
                         ClearCart();
-                        ShowMessage("Order canceled.");
+                        ShowMessage(
+                        "Order canceled. No sale was saved.");
                         return true;
                 }
             }
         }
-
         private static void DisplayCart()
         {
             Console.WriteLine("ORDER REVIEW");
-
-            for (int index = 0; index < CartQuantities.Length; index++)
+            Console.WriteLine(
+            "----------------------------------------------------------------");
+            Console.WriteLine(
+            "{0,-20} {1,12} {2,8} {3,16}",
+            "Item",
+            "Unit Price",
+            "Qty",
+            "Subtotal");
+            Console.WriteLine(
+            "----------------------------------------------------------------");
+            for (int index = 0;
+            index < CartQuantities.Length;
+            index++)
             {
                 if (CartQuantities[index] == 0)
+                {
                     continue;
-
+                }
                 decimal subtotal =
-                    MenuPrices[index] * CartQuantities[index];
-
+                MenuPrices[index] * CartQuantities[index];
                 Console.WriteLine(
-                    $"{MenuNames[index]} - PHP {MenuPrices[index]:N2} " +
-                    $"x {CartQuantities[index]} = PHP {subtotal:N2}");
+                "{0,-20} PHP {1,7:N2} {2,8} PHP {3,10:N2}",
+                MenuNames[index],
+                MenuPrices[index],
+                CartQuantities[index],
+                subtotal);
             }
-
-            Console.WriteLine($"TOTAL: PHP {CalculateTotal():N2}");
+            Console.WriteLine(
+            "----------------------------------------------------------------");
+            Console.WriteLine(
+            "{0,47} PHP {1,10:N2}",
+            "TOTAL:",
+            CalculateTotal());
+            Console.WriteLine(
+            "----------------------------------------------------------------");
         }
-
         private static decimal CalculateTotal()
         {
-            decimal total = 0;
-
-            for (int index = 0; index < CartQuantities.Length; index++)
+            decimal total = 0.00m;
+            for (int index = 0;
+            index < CartQuantities.Length;
+            index++)
             {
-                total += MenuPrices[index] * CartQuantities[index];
+                total += MenuPrices[index] *
+                CartQuantities[index];
             }
-
             return total;
         }
-
         private static bool ProcessPayment()
         {
             decimal total = CalculateTotal();
-
             while (true)
             {
                 Console.Clear();
+                DisplayHeader();
                 DisplayCart();
-
+                Console.WriteLine();
+                Console.WriteLine(
+                "Enter X to cancel payment and the order.");
                 Console.Write("Cash amount: PHP ");
                 string input = (Console.ReadLine() ?? "").Trim();
-
-                if (input.Equals("X", StringComparison.OrdinalIgnoreCase))
+                if (input.Equals(
+                "X",
+                StringComparison.OrdinalIgnoreCase))
                 {
+                    ClearCart();
+                    ShowMessage(
+                    "Payment canceled. No sale was saved.");
+                    return true;
+                }
+                if (!TryParseMoney(input, out decimal cash))
+                {
+                    Console.WriteLine();
+                    Console.WriteLine(
+                    "Invalid cash amount. Enter a nonnegative " +
+                    "number with no more than two decimal places.");
+                    Pause();
+                    continue;
+                }
+                if (cash < total)
+                {
+                    decimal amountNeeded = total - cash;
+                    Console.WriteLine();
+                    Console.WriteLine(
+                    $"Insufficient cash. Amount still needed: " +
+                    $"PHP {amountNeeded:N2}");
+                    Console.WriteLine(
+                    "The next entry must be the full cash amount.");
+                    Pause();
+                    continue;
+                }
+                string orderId = GenerateNextOrderId();
+                decimal change = cash - total;
+                bool saved = SaveOrder(
+                orderId,
+                PaidStatus,
+                total,
+                cash,
+                change);
+                if (!saved)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine(
+                    "The order could not be saved.");
+                    Console.WriteLine(
+                    "No successful sale was recorded.");
+                    Console.WriteLine();
+                    Console.WriteLine("1. Retry saving");
+                    Console.WriteLine("2. Cancel and return");
+                    int saveChoice = ReadInteger(
+                    "Select an option: ",
+                    1,
+                    2);
+                    if (saveChoice == 1)
+                    {
+                        continue;
+                    }
                     ClearCart();
                     return true;
                 }
-
-                if (!TryParseMoney(input, out decimal cash) || cash < total)
-                {
-                    ShowMessage("Invalid or insufficient cash.");
-                    continue;
-                }
-
-                string orderId = GenerateNextOrderId();
-                decimal change = cash - total;
-
-                bool saved = SaveOrder(
-                    orderId, PaidStatus, total, cash, change);
-
-                if (!saved)
-                {
-                    ShowMessage("The order could not be saved.");
-                    return true;
-                }
-
+                Console.Clear();
                 DisplayReceipt(
-                    orderId, PaidStatus, GetCurrentCartItems(),
-                    total, cash, change);
-
+                orderId,
+                PaidStatus,
+                GetCurrentCartItems(),
+                total,
+                cash,
+                change);
                 ClearCart();
                 Pause();
                 return true;
             }
         }
-
         private static bool TryParseMoney(
-            string input, out decimal value)
+        string input,
+        out decimal value)
         {
-            value = 0;
-
-            if (!decimal.TryParse(
-                input,
-                NumberStyles.AllowDecimalPoint,
-                CultureInfo.InvariantCulture,
-                out value))
+            value = 0.00m;
+            if (string.IsNullOrWhiteSpace(input))
+            {
                 return false;
-
-            return value >= 0 && GetDecimalPlaces(input) <= 2;
+            }
+            if (!decimal.TryParse(
+            input,
+            NumberStyles.AllowDecimalPoint,
+            CultureInfo.InvariantCulture,
+            out value))
+            {
+                return false;
+            }
+            if (value < 0)
+            {
+                return false;
+            }
+            int decimalPlaces = GetDecimalPlaces(input);
+            return decimalPlaces <= 2;
         }
-
         private static int GetDecimalPlaces(string input)
         {
-            int index = input.IndexOf('.');
-            return index < 0 ? 0 : input.Length - index - 1;
+            int decimalPointIndex = input.IndexOf('.');
+            if (decimalPointIndex < 0)
+            {
+                return 0;
+            }
+            return input.Length - decimalPointIndex - 1;
         }
-
         private static List<OrderItem> GetCurrentCartItems()
         {
             List<OrderItem> items = new List<OrderItem>();
-
-            for (int index = 0; index < CartQuantities.Length; index++)
+            for (int index = 0;
+            index < CartQuantities.Length;
+            index++)
             {
-                if (CartQuantities[index] == 0)
+                int quantity = CartQuantities[index];
+                if (quantity == 0)
+                {
                     continue;
-
+                }
                 items.Add(new OrderItem
                 {
                     Name = MenuNames[index],
                     UnitPrice = MenuPrices[index],
-                    Quantity = CartQuantities[index],
-                    Subtotal = MenuPrices[index] * CartQuantities[index]
+                    Quantity = quantity,
+                    Subtotal = MenuPrices[index] * quantity
                 });
             }
-
             return items;
         }
-
         private static string GenerateNextOrderId()
         {
             int highestNumber = 0;
-
             if (File.Exists(OrdersFile))
             {
-                foreach (string line in File.ReadLines(OrdersFile))
+                try
                 {
-                    string[] fields = line.Split('|');
-
-                    if (fields.Length >= 2 &&
-                        fields[0] == "ORDER" &&
-                        fields[1].StartsWith("ORD") &&
-                        int.TryParse(fields[1].Substring(3), out int number))
+                    foreach (string line in File.ReadLines(OrdersFile))
                     {
-                        highestNumber = Math.Max(highestNumber, number);
+                        if (!line.StartsWith("ORDER|",
+                        StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+                        string[] fields = line.Split('|');
+                        if (fields.Length < 2)
+                        {
+                            continue;
+                        }
+                        string id = fields[1].Trim();
+                        if (id.StartsWith(
+                        "ORD",
+                        StringComparison.OrdinalIgnoreCase) &&
+                        int.TryParse(
+                        id.Substring(3),
+                        out int number))
+                        {
+                            highestNumber = Math.Max(
+                            highestNumber,
+                            number);
+                        }
                     }
                 }
+                catch (IOException)
+                {
+                    // SaveOrder will display a useful error if
+                    // the records location cannot be accessed.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // SaveOrder handles the actual save failure.
+                }
             }
-
             return $"ORD{highestNumber + 1:D4}";
         }
-
         private static bool SaveOrder(
-            string orderId, string status,
-            decimal total, decimal cash, decimal change)
+        string orderId,
+        string status,
+        decimal total,
+        decimal cash,
+        decimal change)
         {
             try
             {
                 Directory.CreateDirectory(RecordsFolder);
-
                 using StreamWriter writer =
-                    new StreamWriter(OrdersFile, append: true);
-
-                writer.WriteLine($"ORDER|{orderId}|{status}");
-
-                for (int index = 0; index < CartQuantities.Length; index++)
+                new StreamWriter(OrdersFile, append: true);
+                writer.WriteLine(
+                $"ORDER|{orderId}|{status}");
+                for (int index = 0;
+                index < CartQuantities.Length;
+                index++)
                 {
                     if (CartQuantities[index] == 0)
+                    {
                         continue;
-
+                    }
                     decimal subtotal =
-                        MenuPrices[index] * CartQuantities[index];
-
+                    MenuPrices[index] *
+                    CartQuantities[index];
                     writer.WriteLine(
-                        $"ITEM|{MenuNames[index]}|" +
-                        $"{MenuPrices[index]:0.00}|" +
-                        $"{CartQuantities[index]}|{subtotal:0.00}");
+                    $"ITEM|{EscapeField(MenuNames[index])}|" +
+                    $"{MenuPrices[index].ToString("0.00", CultureInfo.InvariantCulture)}|" +
+                    $"{CartQuantities[index]}|" +
+                    $"{subtotal.ToString("0.00", CultureInfo.InvariantCulture)}");
                 }
-
                 writer.WriteLine(
-                    $"PAYMENT|{total:0.00}|{cash:0.00}|{change:0.00}");
-
+                $"PAYMENT|" +
+                $"{total.ToString("0.00", CultureInfo.InvariantCulture)}|" +
+                $"{cash.ToString("0.00", CultureInfo.InvariantCulture)}|" +
+                $"{change.ToString("0.00", CultureInfo.InvariantCulture)}");
                 writer.WriteLine("END");
                 return true;
             }
+            catch (UnauthorizedAccessException exception)
+            {
+                Console.WriteLine(
+                $"Save failed: {exception.Message}");
+                return false;
+            }
+            catch (IOException exception)
+            {
+                Console.WriteLine(
+                $"Save failed: {exception.Message}");
+                return false;
+            }
             catch (Exception exception)
             {
-                Console.WriteLine($"Save failed: {exception.Message}");
+                Console.WriteLine(
+                $"Unexpected save failure: {exception.Message}");
                 return false;
             }
         }
-
+        private static string EscapeField(string value)
+        {
+            return value
+            .Replace("|", "/")
+            .Replace("\r", " ")
+            .Replace("\n", " ");
+        }
         private static void CashierView()
         {
             while (true)
             {
                 Console.Clear();
                 DisplayHeader();
-
                 Console.WriteLine("CASHIER VIEW");
+                Console.WriteLine("----------------------------------------------");
                 Console.WriteLine("1. Find paid order");
                 Console.WriteLine("2. View sales report");
                 Console.WriteLine("3. Back to main menu");
-
-                int choice = ReadInteger("Select an option: ", 1, 3);
-
+                Console.WriteLine();
+                int choice = ReadInteger(
+                "Select an option: ",
+                1,
+                3);
                 switch (choice)
                 {
                     case 1:
@@ -486,153 +551,233 @@ namespace JubuluFoodKiosk
                 }
             }
         }
-
         private static void FindOrder()
         {
+            Console.Clear();
+            DisplayHeader();
             Console.Write("Enter Order ID: ");
             string orderId = (Console.ReadLine() ?? "").Trim();
-
-            List<SavedOrder> orders = ReadSavedOrders();
-
-            SavedOrder? order = orders.FirstOrDefault(
-                savedOrder => savedOrder.Id.Equals(
-                    orderId, StringComparison.OrdinalIgnoreCase));
-
-            if (order == null)
+            if (string.IsNullOrWhiteSpace(orderId))
             {
-                ShowMessage("Order not found.");
+                ShowMessage("Order ID cannot be blank.");
                 return;
             }
-
+            List<SavedOrder> orders = ReadSavedOrders();
+            SavedOrder? order = orders.FirstOrDefault(
+            savedOrder => savedOrder.Id.Equals(
+            orderId,
+            StringComparison.OrdinalIgnoreCase));
+            Console.Clear();
+            DisplayHeader();
+            if (order == null)
+            {
+                Console.WriteLine("Order not found.");
+                Pause();
+                return;
+            }
             DisplayReceipt(
-                order.Id, order.Status, order.Items,
-                order.Total, order.Cash, order.Change);
-
+            order.Id,
+            order.Status,
+            order.Items,
+            order.Total,
+            order.Cash,
+            order.Change);
             Pause();
         }
-
         private static void ShowSalesReport()
         {
-            List<SavedOrder> paidOrders = ReadSavedOrders()
-                .Where(order => order.Status == PaidStatus)
-                .ToList();
-
-            decimal totalSales = paidOrders.Sum(order => order.Total);
-
+            Console.Clear();
+            DisplayHeader();
             Console.WriteLine("SALES REPORT");
-            Console.WriteLine($"Completed orders: {paidOrders.Count}");
-            Console.WriteLine($"Total sales: PHP {totalSales:N2}");
-
+            Console.WriteLine("----------------------------------------------");
+            List<SavedOrder> paidOrders = ReadSavedOrders()
+            .Where(order => order.Status.Equals(
+            PaidStatus,
+            StringComparison.OrdinalIgnoreCase))
+            .ToList();
+            decimal totalSales = paidOrders.Sum(
+            order => order.Total);
+            Console.WriteLine(
+            $"Completed orders : {paidOrders.Count}");
+            Console.WriteLine(
+            $"Total sales : PHP {totalSales:N2}");
+            if (paidOrders.Count == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine("No sales yet.");
+            }
+            Console.WriteLine("----------------------------------------------");
             Pause();
         }
-
         private static List<SavedOrder> ReadSavedOrders()
         {
             List<SavedOrder> orders = new List<SavedOrder>();
-
             if (!File.Exists(OrdersFile))
-                return orders;
-
-            SavedOrder? currentOrder = null;
-
-            foreach (string line in File.ReadLines(OrdersFile))
             {
-                string[] fields = line.Split('|');
-
-                if (fields[0] == "ORDER" && fields.Length >= 3)
+                return orders;
+            }
+            try
+            {
+                SavedOrder? currentOrder = null;
+                foreach (string rawLine in File.ReadLines(OrdersFile))
                 {
-                    currentOrder = new SavedOrder
+                    if (string.IsNullOrWhiteSpace(rawLine))
                     {
-                        Id = fields[1],
-                        Status = fields[2]
-                    };
-                }
-                else if (fields[0] == "ITEM" &&
-                         fields.Length >= 5 && currentOrder != null)
-                {
-                    if (decimal.TryParse(fields[2], out decimal price) &&
-                        int.TryParse(fields[3], out int quantity) &&
-                        decimal.TryParse(fields[4], out decimal subtotal))
+                        continue;
+                    }
+                    string[] fields = rawLine.Split('|');
+                    string recordType = fields[0];
+                    if (recordType == "ORDER" && fields.Length >= 3)
                     {
-                        currentOrder.Items.Add(new OrderItem
+                        currentOrder = new SavedOrder
                         {
-                            Name = fields[1],
-                            UnitPrice = price,
-                            Quantity = quantity,
-                            Subtotal = subtotal
-                        });
+                            Id = fields[1],
+                            Status = fields[2]
+                        };
+                    }
+                    else if (recordType == "ITEM" &&
+                    fields.Length >= 5 &&
+                    currentOrder != null)
+                    {
+                        if (TryReadOrderItem(
+                        fields,
+                        out OrderItem? item))
+                        {
+                            currentOrder.Items.Add(item);
+                        }
+                    }
+                    else if (recordType == "PAYMENT" &&
+                    fields.Length >= 4 &&
+                    currentOrder != null)
+                    {
+                        if (TryReadDecimal(
+                        fields[1],
+                        out decimal total) &&
+                        TryReadDecimal(
+                        fields[2],
+                        out decimal cash) &&
+                        TryReadDecimal(
+                        fields[3],
+                        out decimal change))
+                        {
+                            currentOrder.Total = total;
+                            currentOrder.Cash = cash;
+                            currentOrder.Change = change;
+                        }
+                    }
+                    else if (recordType == "END" &&
+                    currentOrder != null)
+                    {
+                        orders.Add(currentOrder);
+                        currentOrder = null;
                     }
                 }
-                else if (fields[0] == "PAYMENT" &&
-                         fields.Length >= 4 && currentOrder != null)
-                {
-                    decimal.TryParse(fields[1], out decimal total);
-                    decimal.TryParse(fields[2], out decimal cash);
-                    decimal.TryParse(fields[3], out decimal change);
-
-                    currentOrder.Total = total;
-                    currentOrder.Cash = cash;
-                    currentOrder.Change = change;
-                }
-                else if (fields[0] == "END" && currentOrder != null)
-                {
-                    orders.Add(currentOrder);
-                    currentOrder = null;
-                }
             }
-
+            catch (UnauthorizedAccessException exception)
+            {
+                Console.WriteLine(
+                $"Unable to read orders: {exception.Message}");
+                Pause();
+            }
+            catch (IOException exception)
+            {
+                Console.WriteLine(
+                $"Unable to read orders: {exception.Message}");
+                Pause();
+            }
             return orders;
         }
-
+        private static bool TryReadOrderItem(
+        string[] fields,
+        out OrderItem? item)
+        {
+            item = null;
+            if (!TryReadDecimal(
+            fields[2],
+            out decimal unitPrice) ||
+            !int.TryParse(
+            fields[3],
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out int quantity) ||
+            !TryReadDecimal(
+            fields[4],
+            out decimal subtotal))
+            {
+                return false;
+            }
+            item = new OrderItem
+            {
+                Name = fields[1],
+                UnitPrice = unitPrice,
+                Quantity = quantity,
+                Subtotal = subtotal
+            };
+            return true;
+        }
+        private static bool TryReadDecimal(
+        string input,
+        out decimal value)
+        {
+            return decimal.TryParse(
+            input,
+            NumberStyles.AllowDecimalPoint |
+            NumberStyles.AllowLeadingSign,
+            CultureInfo.InvariantCulture,
+            out value);
+        }
         private static void DisplayReceipt(
-            string orderId, string status,
-            List<OrderItem> items,
-            decimal total, decimal cash, decimal change)
+        string orderId,
+        string status,
+        List<OrderItem> items,
+        decimal total,
+        decimal cash,
+        decimal change)
         {
             Console.WriteLine("==============================================");
-            Console.WriteLine($"             {RestaurantName}");
-            Console.WriteLine("                   RECEIPT");
+            Console.WriteLine($" {RestaurantName}");
+            Console.WriteLine(" RECEIPT");
             Console.WriteLine("==============================================");
-
             Console.WriteLine($"Order ID : {orderId}");
-            Console.WriteLine($"Status   : {status}");
-
+            Console.WriteLine($"Status : {status}");
+            Console.WriteLine("----------------------------------------------");
             foreach (OrderItem item in items)
             {
                 Console.WriteLine(item.Name);
                 Console.WriteLine(
-                    $"PHP {item.UnitPrice:N2} x {item.Quantity} = " +
-                    $"PHP {item.Subtotal:N2}");
+                $" PHP {item.UnitPrice:N2} x {item.Quantity}" +
+                $" = PHP {item.Subtotal:N2}");
             }
-
-            Console.WriteLine($"Total  : PHP {total:N2}");
-            Console.WriteLine($"Cash   : PHP {cash:N2}");
+            Console.WriteLine("----------------------------------------------");
+            Console.WriteLine($"Total : PHP {total:N2}");
+            Console.WriteLine($"Cash : PHP {cash:N2}");
             Console.WriteLine($"Change : PHP {change:N2}");
+            Console.WriteLine("==============================================");
         }
-
         private static bool IsCartEmpty()
         {
             return CartQuantities.All(quantity => quantity == 0);
         }
-
         private static void ClearCart()
         {
-            Array.Clear(CartQuantities, 0, CartQuantities.Length);
+            Array.Clear(
+            CartQuantities,
+            0,
+            CartQuantities.Length);
         }
-
         private static void ShowMessage(string message)
         {
+            Console.WriteLine();
             Console.WriteLine(message);
             Pause();
         }
-
         private static void Pause()
         {
-            Console.WriteLine("Press Enter to continue...");
+            Console.WriteLine();
+            Console.Write("Press Enter to continue...");
             Console.ReadLine();
         }
     }
-
     internal class OrderItem
     {
         public string Name { get; set; } = "";
@@ -640,20 +785,14 @@ namespace JubuluFoodKiosk
         public int Quantity { get; set; }
         public decimal Subtotal { get; set; }
     }
-
     internal class SavedOrder
     {
         public string Id { get; set; } = "";
         public string Status { get; set; } = "";
-
         public List<OrderItem> Items { get; set; } =
-            new List<OrderItem>();
-
+        new List<OrderItem>();
         public decimal Total { get; set; }
         public decimal Cash { get; set; }
         public decimal Change { get; set; }
-    
-
     }
 }
-
