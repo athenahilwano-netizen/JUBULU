@@ -161,6 +161,91 @@ namespace JubuluFoodKiosk
 
             Console.WriteLine("----------------------------------------------");
         }
-        
+
+        private static void CustomerView()
+        {
+            ClearCart();
+
+            while (true)
+            {
+                Console.Clear();
+                DisplayHeader();
+                DisplayFoodMenu();
+
+                Console.WriteLine("A. Add an item");
+                Console.WriteLine("R. Review order");
+                Console.WriteLine("C. Cancel order");
+                Console.WriteLine("B. Back to main menu");
+
+                string choice = (Console.ReadLine() ?? "")
+                    .Trim().ToUpperInvariant();
+
+                switch (choice)
+                {
+                    case "A":
+                        AddItemToCart();
+                        break;
+
+                    case "R":
+                        if (IsCartEmpty())
+                        {
+                            ShowMessage("The cart is empty.");
+                        }
+                        else if (ReviewOrder())
+                        {
+                            return;
+                        }
+                        break;
+
+                    case "C":
+                    case "B":
+                        ClearCart();
+                        ShowMessage("Order canceled. No sale was saved.");
+                        return;
+
+                    default:
+                        ShowMessage("Invalid option. Please try again.");
+                        break;
+                }
+            }
+        }
+
+        private static void AddItemToCart()
+        {
+            int itemNumber = ReadInteger(
+                $"Enter item number (1-{MenuNames.Length}): ",
+                1, MenuNames.Length);
+
+            int itemIndex = itemNumber - 1;
+            int remainingQuantity = 99 - CartQuantities[itemIndex];
+
+            int quantity = ReadInteger(
+                $"Enter quantity (1-{remainingQuantity}): ",
+                1, remainingQuantity);
+
+            CartQuantities[itemIndex] += quantity;
+
+            ShowMessage(
+                $"{quantity} x {MenuNames[itemIndex]} added to the cart.");
+        }
+
+        private static int ReadInteger(
+            string prompt, int minimum, int maximum)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                string input = (Console.ReadLine() ?? "").Trim();
+
+                if (int.TryParse(input, out int value) &&
+                    value >= minimum && value <= maximum)
+                {
+                    return value;
+                }
+
+                Console.WriteLine(
+                    $"Enter a valid whole number from {minimum} to {maximum}.");
+            }
+        }
     }
 }
