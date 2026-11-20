@@ -247,5 +247,111 @@ namespace JubuluFoodKiosk
                     $"Enter a valid whole number from {minimum} to {maximum}.");
             }
         }
+
+        private static bool ReviewOrder()
+        {
+            while (true)
+            {
+                Console.Clear();
+                DisplayHeader();
+                DisplayCart();
+
+                Console.WriteLine("1. Add more items");
+                Console.WriteLine("2. Confirm and pay");
+                Console.WriteLine("3. Cancel order");
+
+                int choice = ReadInteger("Select an option: ", 1, 3);
+
+                switch (choice)
+                {
+                    case 1:
+                        return false;
+                    case 2:
+                        return ProcessPayment();
+                    case 3:
+                        ClearCart();
+                        ShowMessage("Order canceled.");
+                        return true;
+                }
+            }
+        }
+
+        private static void DisplayCart()
+        {
+            Console.WriteLine("ORDER REVIEW");
+
+            for (int index = 0; index < CartQuantities.Length; index++)
+            {
+                if (CartQuantities[index] == 0)
+                    continue;
+
+                decimal subtotal =
+                    MenuPrices[index] * CartQuantities[index];
+
+                Console.WriteLine(
+                    $"{MenuNames[index]} - PHP {MenuPrices[index]:N2} " +
+                    $"x {CartQuantities[index]} = PHP {subtotal:N2}");
+            }
+
+            Console.WriteLine($"TOTAL: PHP {CalculateTotal():N2}");
+        }
+
+        private static decimal CalculateTotal()
+        {
+            decimal total = 0;
+
+            for (int index = 0; index < CartQuantities.Length; index++)
+            {
+                total += MenuPrices[index] * CartQuantities[index];
+            }
+
+            return total;
+        }
+
+        private static bool ProcessPayment()
+        {
+            decimal total = CalculateTotal();
+
+            while (true)
+            {
+                Console.Clear();
+                DisplayCart();
+
+                Console.Write("Cash amount: PHP ");
+                string input = (Console.ReadLine() ?? "").Trim();
+
+                if (input.Equals("X", StringComparison.OrdinalIgnoreCase))
+                {
+                    ClearCart();
+                    return true;
+                }
+
+                if (!TryParseMoney(input, out decimal cash) || cash < total)
+                {
+                    ShowMessage("Invalid or insufficient cash.");
+                    continue;
+                }
+
+                string orderId = GenerateNextOrderId();
+                decimal change = cash - total;
+
+                bool saved = SaveOrder(
+                    orderId, PaidStatus, total, cash, change);
+
+                if (!saved)
+                {
+                    ShowMessage("The order could not be saved.");
+                    return true;
+                }
+
+                DisplayReceipt(
+                    orderId, PaidStatus, GetCurrentCartItems(),
+                    total, cash, change);
+
+                ClearCart();
+                Pause();
+                return true;
+            }
+        }
     }
 }
