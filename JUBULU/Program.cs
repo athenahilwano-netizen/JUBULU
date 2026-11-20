@@ -161,7 +161,6 @@ namespace JubuluFoodKiosk
 
             Console.WriteLine("----------------------------------------------");
         }
-
         private static void CustomerView()
         {
             ClearCart();
@@ -209,6 +208,7 @@ namespace JubuluFoodKiosk
                 }
             }
         }
+        
 
         private static void AddItemToCart()
         {
@@ -583,5 +583,77 @@ namespace JubuluFoodKiosk
 
             return orders;
         }
+
+        private static void DisplayReceipt(
+            string orderId, string status,
+            List<OrderItem> items,
+            decimal total, decimal cash, decimal change)
+        {
+            Console.WriteLine("==============================================");
+            Console.WriteLine($"             {RestaurantName}");
+            Console.WriteLine("                   RECEIPT");
+            Console.WriteLine("==============================================");
+
+            Console.WriteLine($"Order ID : {orderId}");
+            Console.WriteLine($"Status   : {status}");
+
+            foreach (OrderItem item in items)
+            {
+                Console.WriteLine(item.Name);
+                Console.WriteLine(
+                    $"PHP {item.UnitPrice:N2} x {item.Quantity} = " +
+                    $"PHP {item.Subtotal:N2}");
+            }
+
+            Console.WriteLine($"Total  : PHP {total:N2}");
+            Console.WriteLine($"Cash   : PHP {cash:N2}");
+            Console.WriteLine($"Change : PHP {change:N2}");
+        }
+
+        private static bool IsCartEmpty()
+        {
+            return CartQuantities.All(quantity => quantity == 0);
+        }
+
+        private static void ClearCart()
+        {
+            Array.Clear(CartQuantities, 0, CartQuantities.Length);
+        }
+
+        private static void ShowMessage(string message)
+        {
+            Console.WriteLine(message);
+            Pause();
+        }
+
+        private static void Pause()
+        {
+            Console.WriteLine("Press Enter to continue...");
+            Console.ReadLine();
+        }
+    }
+
+    internal class OrderItem
+    {
+        public string Name { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+        public decimal Subtotal { get; set; }
+    }
+
+    internal class SavedOrder
+    {
+        public string Id { get; set; } = "";
+        public string Status { get; set; } = "";
+
+        public List<OrderItem> Items { get; set; } =
+            new List<OrderItem>();
+
+        public decimal Total { get; set; }
+        public decimal Cash { get; set; }
+        public decimal Change { get; set; }
+    
+
     }
 }
+
