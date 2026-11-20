@@ -458,5 +458,130 @@ namespace JubuluFoodKiosk
                 return false;
             }
         }
+
+        private static void CashierView()
+        {
+            while (true)
+            {
+                Console.Clear();
+                DisplayHeader();
+
+                Console.WriteLine("CASHIER VIEW");
+                Console.WriteLine("1. Find paid order");
+                Console.WriteLine("2. View sales report");
+                Console.WriteLine("3. Back to main menu");
+
+                int choice = ReadInteger("Select an option: ", 1, 3);
+
+                switch (choice)
+                {
+                    case 1:
+                        FindOrder();
+                        break;
+                    case 2:
+                        ShowSalesReport();
+                        break;
+                    case 3:
+                        return;
+                }
+            }
+        }
+
+        private static void FindOrder()
+        {
+            Console.Write("Enter Order ID: ");
+            string orderId = (Console.ReadLine() ?? "").Trim();
+
+            List<SavedOrder> orders = ReadSavedOrders();
+
+            SavedOrder? order = orders.FirstOrDefault(
+                savedOrder => savedOrder.Id.Equals(
+                    orderId, StringComparison.OrdinalIgnoreCase));
+
+            if (order == null)
+            {
+                ShowMessage("Order not found.");
+                return;
+            }
+
+            DisplayReceipt(
+                order.Id, order.Status, order.Items,
+                order.Total, order.Cash, order.Change);
+
+            Pause();
+        }
+
+        private static void ShowSalesReport()
+        {
+            List<SavedOrder> paidOrders = ReadSavedOrders()
+                .Where(order => order.Status == PaidStatus)
+                .ToList();
+
+            decimal totalSales = paidOrders.Sum(order => order.Total);
+
+            Console.WriteLine("SALES REPORT");
+            Console.WriteLine($"Completed orders: {paidOrders.Count}");
+            Console.WriteLine($"Total sales: PHP {totalSales:N2}");
+
+            Pause();
+        }
+
+        private static List<SavedOrder> ReadSavedOrders()
+        {
+            List<SavedOrder> orders = new List<SavedOrder>();
+
+            if (!File.Exists(OrdersFile))
+                return orders;
+
+            SavedOrder? currentOrder = null;
+
+            foreach (string line in File.ReadLines(OrdersFile))
+            {
+                string[] fields = line.Split('|');
+
+                if (fields[0] == "ORDER" && fields.Length >= 3)
+                {
+                    currentOrder = new SavedOrder
+                    {
+                        Id = fields[1],
+                        Status = fields[2]
+                    };
+                }
+                else if (fields[0] == "ITEM" &&
+                         fields.Length >= 5 && currentOrder != null)
+                {
+                    if (decimal.TryParse(fields[2], out decimal price) &&
+                        int.TryParse(fields[3], out int quantity) &&
+                        decimal.TryParse(fields[4], out decimal subtotal))
+                    {
+                        currentOrder.Items.Add(new OrderItem
+                        {
+                            Name = fields[1],
+                            UnitPrice = price,
+                            Quantity = quantity,
+                            Subtotal = subtotal
+                        });
+                    }
+                }
+                else if (fields[0] == "PAYMENT" &&
+                         fields.Length >= 4 && currentOrder != null)
+                {
+                    decimal.TryParse(fields[1], out decimal total);
+                    decimal.TryParse(fields[2], out decimal cash);
+                    decimal.TryParse(fields[3], out decimal change);
+
+                    currentOrder.Total = total;
+                    currentOrder.Cash = cash;
+                    currentOrder.Change = change;
+                }
+                else if (fields[0] == "END" && currentOrder != null)
+                {
+                    orders.Add(currentOrder);
+                    currentOrder = null;
+                }
+            }
+
+            return orders;
+        }
     }
 }
