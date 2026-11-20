@@ -353,5 +353,110 @@ namespace JubuluFoodKiosk
                 return true;
             }
         }
+
+        private static bool TryParseMoney(
+            string input, out decimal value)
+        {
+            value = 0;
+
+            if (!decimal.TryParse(
+                input,
+                NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture,
+                out value))
+                return false;
+
+            return value >= 0 && GetDecimalPlaces(input) <= 2;
+        }
+
+        private static int GetDecimalPlaces(string input)
+        {
+            int index = input.IndexOf('.');
+            return index < 0 ? 0 : input.Length - index - 1;
+        }
+
+        private static List<OrderItem> GetCurrentCartItems()
+        {
+            List<OrderItem> items = new List<OrderItem>();
+
+            for (int index = 0; index < CartQuantities.Length; index++)
+            {
+                if (CartQuantities[index] == 0)
+                    continue;
+
+                items.Add(new OrderItem
+                {
+                    Name = MenuNames[index],
+                    UnitPrice = MenuPrices[index],
+                    Quantity = CartQuantities[index],
+                    Subtotal = MenuPrices[index] * CartQuantities[index]
+                });
+            }
+
+            return items;
+        }
+
+        private static string GenerateNextOrderId()
+        {
+            int highestNumber = 0;
+
+            if (File.Exists(OrdersFile))
+            {
+                foreach (string line in File.ReadLines(OrdersFile))
+                {
+                    string[] fields = line.Split('|');
+
+                    if (fields.Length >= 2 &&
+                        fields[0] == "ORDER" &&
+                        fields[1].StartsWith("ORD") &&
+                        int.TryParse(fields[1].Substring(3), out int number))
+                    {
+                        highestNumber = Math.Max(highestNumber, number);
+                    }
+                }
+            }
+
+            return $"ORD{highestNumber + 1:D4}";
+        }
+
+        private static bool SaveOrder(
+            string orderId, string status,
+            decimal total, decimal cash, decimal change)
+        {
+            try
+            {
+                Directory.CreateDirectory(RecordsFolder);
+
+                using StreamWriter writer =
+                    new StreamWriter(OrdersFile, append: true);
+
+                writer.WriteLine($"ORDER|{orderId}|{status}");
+
+                for (int index = 0; index < CartQuantities.Length; index++)
+                {
+                    if (CartQuantities[index] == 0)
+                        continue;
+
+                    decimal subtotal =
+                        MenuPrices[index] * CartQuantities[index];
+
+                    writer.WriteLine(
+                        $"ITEM|{MenuNames[index]}|" +
+                        $"{MenuPrices[index]:0.00}|" +
+                        $"{CartQuantities[index]}|{subtotal:0.00}");
+                }
+
+                writer.WriteLine(
+                    $"PAYMENT|{total:0.00}|{cash:0.00}|{change:0.00}");
+
+                writer.WriteLine("END");
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine($"Save failed: {exception.Message}");
+                return false;
+            }
+        }
     }
 }
